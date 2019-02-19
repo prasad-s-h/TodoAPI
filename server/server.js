@@ -17,7 +17,7 @@ app.post('/todos', (req, res) => {
     });
     
     newTodo.save().then( (doc)=>{
-        res.send(`document saved successfully into todos collection \n ${doc}`);
+        res.send(doc);
     }, (e)=>{
         let errorString = '';
         errorString += 'unable to save the data into todos collection \n';
@@ -47,3 +47,7 @@ app.listen(3000, ()=>{
 //     console.log('note down the following error');
 //     console.log(e);
 // });
+
+module.exports = {
+    app
+};

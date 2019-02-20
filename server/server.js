@@ -1,9 +1,10 @@
 
-let {mongoose} = require('./db/mongoose');
-let {Todo} = require('./models/todos');
-let {User} = require('./models/users');
+const {mongoose} = require('./db/mongoose');
+const {Todo} = require('./models/todos');
+const {User} = require('./models/users');
 const express = require('express');
 const bodyParser = require('body-parser');
+const {ObjectID} = require('mongodb');
 
 const app = express();
 app.use(bodyParser.json());
@@ -41,6 +42,21 @@ app.get('/todos', (req, res) => {
         res.status(400).send('unable to fetch the todos collection');
     });
 
+});
+
+app.get('/todos/:id', (req, res) => {
+    let todoId = req.params.id;
+    
+    if(!ObjectID.isValid(todoId)){
+        return res.status(400).send({Error: 'Invalid ID passed'});
+    }
+
+    Todo.findById(todoId).then( (todos) => {
+        if(!todos) return res.status(404).send('no todos found with the specified id');
+        return res.send({todos});
+    }, (e) => {
+        return res.status(400).send(`Error:- ${e.message}`);
+    });
 });
 
 app.listen(3000, ()=>{

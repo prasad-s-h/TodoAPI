@@ -29,6 +29,20 @@ app.post('/todos', (req, res) => {
 
 });
 
+app.get('/todos', (req, res) => {
+
+    Todo.find().then( (todos) => {
+        res.send(todos);
+        // res.send({
+        //     todos,
+        //     statusCode: 200
+        // });
+    }, (err) => {
+        res.status(400).send('unable to fetch the todos collection');
+    });
+
+});
+
 app.listen(3000, ()=>{
     console.log('listening on port 3000');
 });

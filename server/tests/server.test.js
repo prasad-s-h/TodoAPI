@@ -43,3 +43,16 @@ describe('POST /todos', ()=>{
         .end(done);
     });
 });
+
+describe('GET /todos', () => {
+    it('should get documents from todos collection', (done) => {
+        request(app)
+         .get('/todos')
+         .send()
+         .expect(200)
+         .expect( (res) => {
+             expect(res.body.length).toBe(16);
+         })
+         .end(done);
+    });
+});

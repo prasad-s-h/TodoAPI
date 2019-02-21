@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const db = {
     localhost: 'mongodb://localhost:27017/ToDos',
-    mongoAtlas: 'mongodb+srv://all:gwmPwcM487rIziB9@cluster0-e7f5l.mongodb.net/test?retryWrites=true'
+    mongoAtlas: process.env.MONGODB_URI
   };
 
 mongoose.Promise = global.Promise;

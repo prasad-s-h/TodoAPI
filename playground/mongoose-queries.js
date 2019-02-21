@@ -7,7 +7,6 @@ let text = 'new todo created from test suite';
 let id = '5c6cd5fe9aaa3422ac2b16d9';
 let userId = '5c69bf95f99ef6380d091293'; 
 
-/*
 Todo.find({text}).then( (docs) => {
     console.log('todo by find ', docs);
 }, (err) => {
@@ -30,7 +29,6 @@ Todo.findById(id).then( (doc) => {
     console.log('note down the following error');
     console.log(err);
 });
-*/
 
 User.findById(userId).then( (user) => {
     if(!user) return console.log('no user found with the specified id');

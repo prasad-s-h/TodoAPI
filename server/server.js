@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 
 const app = express();
+const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 app.post('/todos', (req, res) => {
@@ -53,14 +54,14 @@ app.get('/todos/:id', (req, res) => {
 
     Todo.findById(todoId).then( (todos) => {
         if(!todos) return res.status(404).send('no todos found with the specified id');
-        return res.send({todos});
+        return res.send(todos);
     }, (e) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
 });
 
-app.listen(3000, ()=>{
-    console.log('listening on port 3000');
+app.listen(port, ()=>{
+    console.log(`listening on port ${port}`);
 });
 
 // let newUser = new User({

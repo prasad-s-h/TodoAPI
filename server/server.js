@@ -30,6 +30,8 @@ app.post('/todos', (req, res) => {
         // res.status(400).send(e);
     });
 
+    return mongoose.connection.close();
+
 });
 
 app.get('/todos', (req, res) => {
@@ -43,6 +45,8 @@ app.get('/todos', (req, res) => {
     }, (err) => {
         res.status(400).send('unable to fetch the todos collection');
     });
+
+    return mongoose.connection.close();
 
 });
 
@@ -59,6 +63,9 @@ app.get('/todos/:id', (req, res) => {
     }, (e) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
+
+    return mongoose.connection.close();
+
 });
 
 app.delete('/todos/:id', (req,res) => {
@@ -74,6 +81,9 @@ app.delete('/todos/:id', (req,res) => {
     }, (e) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
+
+    return mongoose.connection.close();
+
 });
 
 app.patch('/todos/:id', (req,res) => {
@@ -106,6 +116,8 @@ app.patch('/todos/:id', (req,res) => {
     }).catch( (e) => {
         res.status(400).send(e);
     });
+
+    return mongoose.connection.close();
 
 });
 

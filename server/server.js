@@ -5,6 +5,7 @@ const {User} = require('./models/users');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
+const _ = require('lodash');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -60,24 +61,57 @@ app.get('/todos/:id', (req, res) => {
     });
 });
 
+app.delete('/todos/:id', (req,res) => {
+    let todoId = req.params.id;
+    
+    if(!ObjectID.isValid(todoId)){
+        return res.status(400).send({Error: 'Invalid ID passed'});
+    }
+
+    Todo.findByIdAndRemove(todoId).then( (todo) => {
+        if(!todo) return res.status(404).send('no todos found with the specified id');
+        return res.send(todo);
+    }, (e) => {
+        return res.status(400).send(`Error:- ${e.message}`);
+    });
+});
+
+app.patch('/todos/:id', (req,res) => {
+    let todoId = req.params.id;
+    let body = _.pick(req.body, ['text', 'completed']);
+    
+    if(!ObjectID.isValid(todoId)){
+        return res.status(400).send({Error: 'Invalid ID passed'});
+    }
+
+    if(_.isBoolean(body.completed)  && body.completed  ){
+        body.completedAt = new Date().toString();
+    }else{
+        body.completedAt = 0;
+        body.completed = false;
+    }
+
+    Todo.findByIdAndUpdate(todoId, {
+        text: body.text,
+        completed: body.completed,
+        completedAt: body.completedAt
+    }, {
+        new: true
+    }).then( (oldDoc) => {
+        if(!oldDoc){
+            res.status(404).send('no document found with the specified id');
+            return;
+        }
+        res.send(oldDoc);
+    }).catch( (e) => {
+        res.status(400).send(e);
+    });
+
+});
+
 app.listen(port, ()=>{
     console.log(`listening on port ${port}`);
 });
-
-// let newUser = new User({
-//     userName: 'prasad_s_h',
-//     email: 'prasad_s_h@hotmail.com'
-// });
-
-
-// newUser.save().then( (doc)=>{
-//     console.log('document saved successfully into users collection');
-//     console.log(doc);
-// }, (e)=>{
-//     console.log('unable to save the into users collection');
-//     console.log('note down the following error');
-//     console.log(e);
-// });
 
 module.exports = {
     app

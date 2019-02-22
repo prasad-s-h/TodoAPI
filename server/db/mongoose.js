@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 const db = {
     localhost: 'mongodb://localhost:27017/ToDos',
-    mongoAtlas: process.env.MONGODB_URI
+    mongoAtlas: process.env.MONGODB_URI + '/ToDos'
   };
 
 mongoose.Promise = global.Promise;

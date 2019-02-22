@@ -16,15 +16,8 @@ let TodoSchema = new Schema({
         default: false
     },
     completedAt:{
-        type: Number,
-        default: new Date().getHours()
-        // default: ()=>{
-        //     if(completed == true){
-        //         return new Date().getHours();
-        //     }else{
-        //         return 0;
-        //     }
-        // }
+        type: String,
+        default: 0
     }   
 });
 

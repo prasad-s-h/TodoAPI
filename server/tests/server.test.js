@@ -51,7 +51,7 @@ describe('GET /todos', () => {
         .send()
         .expect(200)
         .expect( (res) => {
-            expect(res.body.length).toBe(19);
+            expect(res.body.length).toBe(2);
         })
         .end(done);
     });
@@ -60,18 +60,18 @@ describe('GET /todos', () => {
 describe('GET /todos/id', () => {
     it('should find a todo by id, 200', (done) => {
         request(app)
-        .get('/todos/5c6cd5fe9aaa3422ac2b16d9')
+        .get('/todos/5c70490fbc357067b2bb25ac')
         .expect(200)
         .expect( (res) => {
             // console.log('response = ', res);
-            expect(res.body.completedAt).toBe(9);
+            expect(res.body.completedAt).toBe('0');
         })
         .end(done);
     });
 
     it('should not find a todo by id, 404', (done) => {
         request(app)
-        .get('/todos/5c6cd5fe9aaa3422ac2b16d1')
+        .get('/todos/6c7049717ddf3267fcf602fb')
         .expect(404)
         .expect( (res) => {
             // console.log('response = ', res);
@@ -82,40 +82,7 @@ describe('GET /todos/id', () => {
 
     it('should not find a todo by id, 400', (done) => {
         request(app)
-        .get('/todos/5c6cd5fe9aaa3422ac2b16d91')
-        .expect(400)
-        .expect( (res) => {
-            // console.log('response = ', res);
-            expect(res.body.Error).toBe('Invalid ID passed');
-        })
-        .end(done);
-    });
-});
-
-describe('DELETE /todos/id', () => {
-    it('should delete todos by id, thus 200', (done) => {
-        request(app)
-        .delete('/todos/5c6b986a16aafa2467c7189e')
-        .expect(200)
-         .expect( (res) => {
-             expect(res.body._id).toBe('5c6b986a16aafa2467c7189e');
-         })
-         .end(done);
-    });
-
-    it('should not delete todos by id as it is not found, 404', (done) => {
-        request(app)
-         .delete('/todos/6c6b986a16aafa2467c7189e')
-         .expect(404)
-         .expect( (res) => {
-             expect(res.text).toBe('no todos found with the specified id');
-         })
-         .end(done);
-    });
-
-    it('should not find a todo by id as it is invalid, 400', (done) => {
-        request(app)
-        .get('/todos/5c6cd5fe9aaa3422ac2b16d91f')
+        .get('/todos/5c70490fbc357067b2bb25acc')
         .expect(400)
         .expect( (res) => {
             // console.log('response = ', res);
@@ -129,7 +96,7 @@ describe('PATCH /todos/id', () => {
     
     it('should update todo, and completed is set as true', (done) => {
         request(app)
-         .patch('/todos/5c6b979cd9e6cc23a4230f75')
+         .patch('/todos/5c70490fbc357067b2bb25ac')
          .send({
              text: 'updated through test suite',
              completed: true
@@ -144,7 +111,7 @@ describe('PATCH /todos/id', () => {
 
     it('should update todo, and clear compltedAt when completed is set as false', (done) => {
         request(app)
-         .patch('/todos/5c6b979cd9e6cc23a4230f75')
+         .patch('/todos/5c70490fbc357067b2bb25ac')
          .send({
             text: 'updated through test suite',
          })
@@ -158,3 +125,36 @@ describe('PATCH /todos/id', () => {
     });
 
 }) ;
+
+describe('DELETE /todos/id', () => {
+    it('should delete todos by id, thus 200', (done) => {
+        request(app)
+        .delete('/todos/5c70490fbc357067b2bb25ac')
+        .expect(200)
+         .expect( (res) => {
+             expect(res.body._id).toBe('5c70490fbc357067b2bb25ac');
+         })
+         .end(done);
+    });
+
+    it('should not delete todos by id as it is not found, 404', (done) => {
+        request(app)
+         .delete('/todos/5c70490fbc357067b2bb25ac')
+         .expect(404)
+         .expect( (res) => {
+             expect(res.text).toBe('no todos found with the specified id');
+         })
+         .end(done);
+    });
+
+    it('should not find a todo by id as it is invalid, 400', (done) => {
+        request(app)
+        .get('/todos/5c70490fbc357067b2bb25acvv')
+        .expect(400)
+        .expect( (res) => {
+            // console.log('response = ', res);
+            expect(res.body.Error).toBe('Invalid ID passed');
+        })
+        .end(done);
+    });
+});

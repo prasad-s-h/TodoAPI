@@ -1,12 +1,8 @@
 
 const mongoose = require('mongoose');
-const db = {
-    localhost: 'mongodb://localhost:27017/ToDos',
-    mongoAtlas: process.env.MONGODB_URI + '/ToDos'
-  };
 
 mongoose.Promise = global.Promise;
-mongoose.connect( db.mongoAtlas , {useNewUrlParser: true} )
+mongoose.connect( process.env.MONGODB_URI , {useNewUrlParser: true} )
 .then( () => {
     console.log('connected to db');
 })

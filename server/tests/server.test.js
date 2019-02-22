@@ -124,3 +124,37 @@ describe('DELETE /todos/id', () => {
         .end(done);
     });
 });
+
+describe('PATCH /todos/id', () => {
+    
+    it('should update todo, and completed is set as true', (done) => {
+        request(app)
+         .patch('/todos/5c6b979cd9e6cc23a4230f75')
+         .send({
+             text: 'updated through test suite',
+             completed: true
+         })
+         .expect(200)
+         .expect( (res) => {
+            expect(res.body.completed).toBeTruthy;
+            expect(res.body.text).toBe('updated through test suite');
+         })
+         .end(done);
+    });
+
+    it('should update todo, and clear compltedAt when completed is set as false', (done) => {
+        request(app)
+         .patch('/todos/5c6b979cd9e6cc23a4230f75')
+         .send({
+            text: 'updated through test suite',
+         })
+         .expect(200)
+         .expect( (res) => {
+            expect(res.body.completed).toBeFalsy;
+            expect(res.body.text).toBe('updated through test suite');
+            expect(res.body.completedAt).toBe('0');
+         })
+         .end(done);
+    });
+
+}) ;

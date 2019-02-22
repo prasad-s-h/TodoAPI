@@ -30,7 +30,7 @@ app.post('/todos', (req, res) => {
         // res.status(400).send(e);
     });
 
-    return mongoose.connection.close();
+    // return mongoose.connection.close();
 
 });
 
@@ -46,7 +46,7 @@ app.get('/todos', (req, res) => {
         res.status(400).send('unable to fetch the todos collection');
     });
 
-    return mongoose.connection.close();
+    // return mongoose.connection.close();
 
 });
 
@@ -64,7 +64,7 @@ app.get('/todos/:id', (req, res) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
 
-    return mongoose.connection.close();
+    // return mongoose.connection.close();
 
 });
 
@@ -82,7 +82,7 @@ app.delete('/todos/:id', (req,res) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
 
-    return mongoose.connection.close();
+    // return mongoose.connection.close();
 
 });
 
@@ -117,7 +117,7 @@ app.patch('/todos/:id', (req,res) => {
         res.status(400).send(e);
     });
 
-    return mongoose.connection.close();
+    // return mongoose.connection.close();
 
 });
 

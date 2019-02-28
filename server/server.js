@@ -31,8 +31,6 @@ app.post('/todos', (req, res) => {
         // res.status(400).send(e);
     });
 
-    // return mongoose.connection.close();
-
 });
 
 app.get('/todos', (req, res) => {
@@ -47,11 +45,10 @@ app.get('/todos', (req, res) => {
         res.status(400).send('unable to fetch the todos collection');
     });
 
-    // return mongoose.connection.close();
-
 });
 
 app.get('/todos/:id', (req, res) => {
+    
     let todoId = req.params.id;
     
     if(!ObjectID.isValid(todoId)){
@@ -65,11 +62,10 @@ app.get('/todos/:id', (req, res) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
 
-    // return mongoose.connection.close();
-
 });
 
 app.delete('/todos/:id', (req,res) => {
+    
     let todoId = req.params.id;
     
     if(!ObjectID.isValid(todoId)){
@@ -82,8 +78,6 @@ app.delete('/todos/:id', (req,res) => {
     }, (e) => {
         return res.status(400).send(`Error:- ${e.message}`);
     });
-
-    // return mongoose.connection.close();
 
 });
 
@@ -118,7 +112,47 @@ app.patch('/todos/:id', (req,res) => {
         res.status(400).send(e);
     });
 
-    // return mongoose.connection.close();
+});
+
+app.post('/users', (req,res) => {
+    
+    let body = _.pick(req.body, ['email','password']);
+
+    //first type
+    // let newUser = new User({
+    //     email: body.email,
+    //     password: body.password
+    // });
+
+    //second type
+    let newUser = new User(body);
+
+    // call genarateAuthToken() - responsible for creating user specific auth token, saving and returning to the user
+
+    newUser.save().then( () => {
+        // res.send(user.email);
+        return newUser.generateAuthToken();
+    }).then( (token) => {
+        res.header('x-auth',token).send(newUser);
+    }).catch( (e) => {
+        let errorString = '';
+        errorString += 'unable to save the data into users collection \n';
+        errorString += 'note down the following error \n';
+        res.status(400).send(`${errorString} \n${e}`);
+    });
+
+});
+
+app.get('/users' , (req, res) => {
+
+    User.find().then( (users) => {
+        if(!users) {
+            return res.send('no documents found from users collection');
+        }
+        return res.send(users);
+    }).catch( (e) => {
+        return res.status(400).send('unable to fetch the users collection')
+    });
 
 });
 

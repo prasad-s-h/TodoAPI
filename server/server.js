@@ -7,6 +7,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 const _ = require('lodash');
+const {authenticate} = require('./middleware/authenticate');
 
 const app = express();
 const port = process.env.PORT;
@@ -82,6 +83,7 @@ app.delete('/todos/:id', (req,res) => {
 });
 
 app.patch('/todos/:id', (req,res) => {
+    
     let todoId = req.params.id;
     let body = _.pick(req.body, ['text', 'completed']);
     
@@ -154,6 +156,10 @@ app.get('/users' , (req, res) => {
         return res.status(400).send('unable to fetch the users collection')
     });
 
+});
+
+app.get('/users/me', authenticate, (req,res) => {    
+    res.send(req.user);
 });
 
 app.listen(port, ()=>{

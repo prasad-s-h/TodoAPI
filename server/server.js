@@ -162,7 +162,7 @@ app.get('/users/me', authenticate, (req,res) => {
     res.send(req.user);
 });
 
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log(`listening on port ${port}`);
 });
 

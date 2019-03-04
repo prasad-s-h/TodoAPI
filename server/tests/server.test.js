@@ -10,7 +10,7 @@ const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 beforeEach(populateUsers);
 beforeEach(populateTodos);
 
-describe('POST /todos', ()=>{
+describe('POST /todos', () => {
     it('it should create a new todo', (done)=>{
         let text="new todo created from test suite";
 
@@ -21,14 +21,14 @@ describe('POST /todos', ()=>{
         .expect( (res)=>{
             expect(res.body.text).toBe(text);
         })
-        .end( (err,res)=>{
+        .end( (err,res) => {
             
             if(err){
                 return done(err);
             }
 
             Todo.find({text})
-            .then( (doc)=>{
+            .then( (doc) => {
                 expect(doc[0].text).toBe(text);
                 done();
             })
@@ -37,7 +37,7 @@ describe('POST /todos', ()=>{
         });
     });
 
-    it('should not create a new todo', (done)=>{
+    it('should not create a new todo', (done) => {
         let text='';
 
         request(app)

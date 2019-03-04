@@ -10,7 +10,6 @@ const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 beforeEach(populateUsers);
 beforeEach(populateTodos);
 
-/*
 describe('POST /todos', ()=>{
     it('it should create a new todo', (done)=>{
         let text="new todo created from test suite";
@@ -22,7 +21,6 @@ describe('POST /todos', ()=>{
         .expect( (res)=>{
             expect(res.body.text).toBe(text);
         })
-        // .end(done);
         .end( (err,res)=>{
             
             if(err){
@@ -49,7 +47,6 @@ describe('POST /todos', ()=>{
         .end(done);
     });
 });
-*/
 
 describe('GET /todos', () => {
     it('should get documents from todos collection', (done) => {
@@ -62,6 +59,108 @@ describe('GET /todos', () => {
         })
         .end(done);
     });
+});
+
+describe('GET /todos/id', () => {
+    it('should find a todo by id, 200', (done) => {
+        request(app)
+        .get(`/todos/${todos[0]._id}`)
+        .expect(200)
+        .expect( (res) => {
+            // console.log('response = ', res);
+            expect(res.body.completedAt).toBe('0');
+        })
+        .end(done);
+    });
+
+    it('should not find a todo by id, 404', (done) => {
+        request(app)
+        .get('/todos/6c7049717ddf3267fcf602fb')
+        .expect(404)
+        .expect( (res) => {
+            // console.log('response = ', res);
+            expect(res.text).toBe('no todos found with the specified id');
+        })
+        .end(done);
+    });
+
+    it('should not find a todo by id, 400', (done) => {
+        request(app)
+        .get('/todos/5c70490fbc357067b2bb25acc')
+        .expect(400)
+        .expect( (res) => {
+            // console.log('response = ', res);
+            expect(res.body.Error).toBe('Invalid ID passed');
+        })
+        .end(done);
+    });
+});
+
+describe('DELETE /todos/id', () => {
+    it('should delete todos by id, thus 200', (done) => {
+        request(app)
+        .delete(`/todos/${todos[0]._id}`)
+        .expect(200)
+         .expect( (res) => {
+             expect(res.body._id).toBe(`${todos[0]._id}`);
+         })
+         .end(done);
+    });
+
+    it('should not delete todos by id as it is not found, 404', (done) => {
+        request(app)
+         .delete('/todos/5c70490fbc357067b2bb25ac')
+         .expect(404)
+         .expect( (res) => {
+             expect(res.text).toBe('no todos found with the specified id');
+         })
+         .end(done);
+    });
+
+    it('should not find a todo by id as it is invalid, 400', (done) => {
+        request(app)
+        .get('/todos/5c70490fbc357067b2bb25acvv')
+        .expect(400)
+        .expect( (res) => {
+            // console.log('response = ', res);
+            expect(res.body.Error).toBe('Invalid ID passed');
+        })
+        .end(done);
+    });
+});
+
+describe('PATCH /todos/id', () => {
+    
+    it('should update todo, and completed is set as true', (done) => {
+        request(app)
+         .patch(`/todos/${todos[0]._id}`)
+         .send({
+             text: 'updated through test suite',
+             completed: true
+         })
+         .expect(200)
+         .expect( (res) => {
+            expect(res.body.completed).toBeTruthy;
+            expect(res.body.text).toBe('updated through test suite');
+         })
+         .end(done);
+    });
+
+    it('should update todo, and clear compltedAt when completed is set as false', (done) => {
+        request(app)
+         .patch(`/todos/${todos[0]._id}`)
+         .send({
+            text: 'updated through test suite',
+         })
+         .expect(200)
+         .expect( (res) => {
+            expect(res.body.completed).toBeFalsy;
+            expect(res.body.text).toBe('updated through test suite');
+            expect(res.body.completedAt).toBe('0');
+         })
+         .end(done);
+    });
+
 });
 
 describe('POST /users', () => {
@@ -216,107 +315,3 @@ describe('DELETE /users/me/logout', () => {
         });
     });
 });
-
-/*
-describe('GET /todos/id', () => {
-    it('should find a todo by id, 200', (done) => {
-        request(app)
-        .get('/todos/5c70490fbc357067b2bb25ac')
-        .expect(200)
-        .expect( (res) => {
-            // console.log('response = ', res);
-            expect(res.body.completedAt).toBe('0');
-        })
-        .end(done);
-    });
-
-    it('should not find a todo by id, 404', (done) => {
-        request(app)
-        .get('/todos/6c7049717ddf3267fcf602fb')
-        .expect(404)
-        .expect( (res) => {
-            // console.log('response = ', res);
-            expect(res.text).toBe('no todos found with the specified id');
-        })
-        .end(done);
-    });
-
-    it('should not find a todo by id, 400', (done) => {
-        request(app)
-        .get('/todos/5c70490fbc357067b2bb25acc')
-        .expect(400)
-        .expect( (res) => {
-            // console.log('response = ', res);
-            expect(res.body.Error).toBe('Invalid ID passed');
-        })
-        .end(done);
-    });
-});
-
-describe('PATCH /todos/id', () => {
-    
-    it('should update todo, and completed is set as true', (done) => {
-        request(app)
-         .patch('/todos/5c70490fbc357067b2bb25ac')
-         .send({
-             text: 'updated through test suite',
-             completed: true
-         })
-         .expect(200)
-         .expect( (res) => {
-            expect(res.body.completed).toBeTruthy;
-            expect(res.body.text).toBe('updated through test suite');
-         })
-         .end(done);
-    });
-
-    it('should update todo, and clear compltedAt when completed is set as false', (done) => {
-        request(app)
-         .patch('/todos/5c70490fbc357067b2bb25ac')
-         .send({
-            text: 'updated through test suite',
-         })
-         .expect(200)
-         .expect( (res) => {
-            expect(res.body.completed).toBeFalsy;
-            expect(res.body.text).toBe('updated through test suite');
-            expect(res.body.completedAt).toBe('0');
-         })
-         .end(done);
-    });
-
-}) ;
-
-describe('DELETE /todos/id', () => {
-    it('should delete todos by id, thus 200', (done) => {
-        request(app)
-        .delete('/todos/5c70490fbc357067b2bb25ac')
-        .expect(200)
-         .expect( (res) => {
-             expect(res.body._id).toBe('5c70490fbc357067b2bb25ac');
-         })
-         .end(done);
-    });
-
-    it('should not delete todos by id as it is not found, 404', (done) => {
-        request(app)
-         .delete('/todos/5c70490fbc357067b2bb25ac')
-         .expect(404)
-         .expect( (res) => {
-             expect(res.text).toBe('no todos found with the specified id');
-         })
-         .end(done);
-    });
-
-    it('should not find a todo by id as it is invalid, 400', (done) => {
-        request(app)
-        .get('/todos/5c70490fbc357067b2bb25acvv')
-        .expect(400)
-        .expect( (res) => {
-            // console.log('response = ', res);
-            expect(res.body.Error).toBe('Invalid ID passed');
-        })
-        .end(done);
-    });
-});
-*/

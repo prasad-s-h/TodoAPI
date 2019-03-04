@@ -197,7 +197,7 @@ app.get('/users/login', (req,res) => {
     });
 });
 
-app.get('/users/me/logout', authenticate, (req, res) => {
+app.delete('/users/me/logout', authenticate, (req, res) => {
     req.user.removeToken(req.token).then( () => {
         res.send('token removed successfully');
     }).catch( (e) => {

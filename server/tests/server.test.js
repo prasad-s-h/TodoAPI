@@ -86,7 +86,7 @@ describe('POST /users', () => {
                 done();
             }
         }).catch( (e) => {
-
+            done(e);
         });
     });
     it('do not create user when invalid data is passed', (done) => {
@@ -145,6 +145,56 @@ describe('GET /users/me', () => {
             expect(res.body).toEqual({});
         })
         .end(done);
+    });
+});
+
+describe('GET /users/login', () => {
+    it('on valid login, should set x-auth token in header', (done) => {
+        request(app)
+         .get('/users/login')
+         .send({
+             email: users[0].email,
+             password: users[0].password
+         })
+         .expect(200)
+         .expect( (res) => {
+             expect(res.body.email).toBe(users[0].email);
+             expect(res.body._id).toBeDefined();
+             expect(res.headers['x-auth']).toExist;
+         })
+         .end( (err,result) => {
+             if(err) return done();
+
+             User.findById(users[0]._id).then( (user) => {
+                expect(user.tokens[0]).toMatchObject({
+                    access: 'auth'
+                });
+             done();
+             }).catch( (e) => {
+                done(e);
+             });
+         });
+    });
+    it('on invalid credentials, should not set x-auth token in header', (done) => {
+        request(app)
+         .get('/users/login')
+         .send({
+             email: users[0].email,
+             password: '123456789'
+         })
+         .expect(400)
+         .expect( (res) => {
+             expect(res.body).toEqual({});
+             expect(res.headers['x-auth']).toNotExist;
+         })
+         .end( (err, result) => {
+             if(err) return done(err);
+         
+             User.find({email:users[0].email}).then( (user) => {
+                if(user) expect(user).toExist;
+                done();
+            }).catch( (e) => done(e));
+         });
     });
 });
 /*

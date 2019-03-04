@@ -196,7 +196,15 @@ app.get('/users/login', (req,res) => {
         res.status(400).send(e);
     });
 });
-    
+
+app.get('/users/me/logout', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then( () => {
+        res.send('token removed successfully');
+    }).catch( (e) => {
+        res.status(400).send(e);
+    });
+});
+
 app.listen(port, () => {
     console.log(`listening on port ${port}`);
 });

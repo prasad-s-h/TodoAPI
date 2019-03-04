@@ -197,6 +197,26 @@ describe('GET /users/login', () => {
          });
     });
 });
+
+describe('DELETE /users/me/logout', () => {
+    it('should delete the user specified x-auth token', (done) =>{
+        request(app)
+        .delete('/users/me/logout')
+        .set('x-auth', users[0].tokens[0].token)
+        .expect(200)
+        .end( (err, result) => {
+            if(err) done(err);
+            
+            User.find({email: users[0].email}).then( (user) => {
+                expect(user[0].tokens.length).toBe(0);
+                done();
+            }).catch( (e) => {
+                done(e);
+            });
+        });
+    });
+});
+
 /*
 describe('GET /todos/id', () => {
     it('should find a todo by id, 200', (done) => {

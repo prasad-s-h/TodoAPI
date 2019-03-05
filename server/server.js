@@ -14,12 +14,13 @@ const app = express();
 const port = process.env.PORT;
 app.use(bodyParser.json());
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     
     let newTodo = new Todo({
         text: req.body.text,
         completed: req.body.completed,
-        completedAt: req.body.completedAt
+        completedAt: req.body.completed ? new Date().toString() : "0",
+        _creator: req.user._id
     });
     
     newTodo.save().then( (doc)=>{
@@ -35,9 +36,9 @@ app.post('/todos', (req, res) => {
 
 });
 
-app.get('/todos', (req, res) => {
+app.get('/todos', authenticate, (req, res) => {
 
-    Todo.find().then( (todos) => {
+    Todo.find({_creator: req.user._id}).then( (todos) => {
         res.send(todos);
         // res.send({
         //     todos,
@@ -49,7 +50,7 @@ app.get('/todos', (req, res) => {
 
 });
 
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     
     let todoId = req.params.id;
     
@@ -57,7 +58,10 @@ app.get('/todos/:id', (req, res) => {
         return res.status(400).send({Error: 'Invalid ID passed'});
     }
 
-    Todo.findById(todoId).then( (todos) => {
+    Todo.findOne({
+        _id: todoId,
+        _creator: req.user._id
+    }).then( (todos) => {
         if(!todos) return res.status(404).send('no todos found with the specified id');
         return res.send(todos);
     }, (e) => {
@@ -66,24 +70,7 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
-app.delete('/todos/:id', (req,res) => {
-    
-    let todoId = req.params.id;
-    
-    if(!ObjectID.isValid(todoId)){
-        return res.status(400).send({Error: 'Invalid ID passed'});
-    }
-
-    Todo.findByIdAndRemove(todoId).then( (todo) => {
-        if(!todo) return res.status(404).send('no todos found with the specified id');
-        return res.send(todo);
-    }, (e) => {
-        return res.status(400).send(`Error:- ${e.message}`);
-    });
-
-});
-
-app.patch('/todos/:id', (req,res) => {
+app.patch('/todos/:id', authenticate, (req,res) => {
     
     let todoId = req.params.id;
     let body = _.pick(req.body, ['text', 'completed']);
@@ -99,7 +86,10 @@ app.patch('/todos/:id', (req,res) => {
         body.completed = false;
     }
 
-    Todo.findByIdAndUpdate(todoId, {
+    Todo.findOneAndUpdate({
+        _id: todoId,
+        _creator: req.user._id
+    }, {
         text: body.text,
         completed: body.completed,
         completedAt: body.completedAt
@@ -113,6 +103,26 @@ app.patch('/todos/:id', (req,res) => {
         res.send(oldDoc);
     }).catch( (e) => {
         res.status(400).send(e);
+    });
+
+});
+
+app.delete('/todos/:id', authenticate, (req,res) => {
+    
+    let todoId = req.params.id;
+    
+    if(!ObjectID.isValid(todoId)){
+        return res.status(400).send({Error: 'Invalid ID passed'});
+    }
+
+    Todo.findOneAndDelete({
+        _id: todoId,
+        _creator: req.user._id
+    }).then( (todo) => {
+        if(!todo) return res.status(404).send('no todos found with the specified id');
+        return res.send(todo);
+    }, (e) => {
+        return res.status(400).send(`Error:- ${e.message}`);
     });
 
 });

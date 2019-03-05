@@ -16,6 +16,7 @@ describe('POST /todos', () => {
 
         request(app)
         .post('/todos')
+        .set('x-auth', users[0].tokens[0].token)
         .send({text})
         .expect(200)
         .expect( (res)=>{
@@ -32,7 +33,7 @@ describe('POST /todos', () => {
                 expect(doc[0].text).toBe(text);
                 done();
             })
-            .catch( (e)=>done(e) );
+            .catch( (e) => done(e) );
 
         });
     });
@@ -41,7 +42,8 @@ describe('POST /todos', () => {
         let text='';
 
         request(app)
-              .post('/todos')
+        .post('/todos')
+        .set('x-auth', users[0].tokens[0].token)
         .send({text})
         .expect(400)
         .end(done);
@@ -52,77 +54,56 @@ describe('GET /todos', () => {
     it('should get documents from todos collection', (done) => {
         request(app)
         .get('/todos')
+        .set('x-auth', users[0].tokens[0].token)
         .send()
         .expect(200)
         .expect( (res) => {
-            expect(res.body.length).toBe(2);
+            expect(res.body.length).toBe(1);
         })
         .end(done);
     });
 });
 
-describe('GET /todos/id', () => {
+describe('GET /todos/:id', () => {
     it('should find a todo by id, 200', (done) => {
         request(app)
         .get(`/todos/${todos[0]._id}`)
+        .set('x-auth', users[0].tokens[0].token)
         .expect(200)
         .expect( (res) => {
-            // console.log('response = ', res);
             expect(res.body.completedAt).toBe('0');
         })
         .end(done);
     });
 
-    it('should not find a todo by id, 404', (done) => {
+    it('should not find a todo by id while trying as other user, 404', (done) => {
         request(app)
-        .get('/todos/6c7049717ddf3267fcf602fb')
+        .get(`/todos/${todos[1]._id}`)
+        .set('x-auth', users[0].tokens[0].token)
         .expect(404)
         .expect( (res) => {
-            // console.log('response = ', res);
             expect(res.text).toBe('no todos found with the specified id');
         })
         .end(done);
     });
 
-    it('should not find a todo by id, 400', (done) => {
+    it('should not find a todo by id when valid id is passed, 404', (done) => {
         request(app)
-        .get('/todos/5c70490fbc357067b2bb25acc')
-        .expect(400)
+        .get('/todos/5c7e1e5f53868836dfcc19d5')
+        .set('x-auth', users[0].tokens[0].token)
+        .expect(404)
         .expect( (res) => {
-            // console.log('response = ', res);
-            expect(res.body.Error).toBe('Invalid ID passed');
+            expect(res.text).toBe('no todos found with the specified id');
         })
         .end(done);
     });
-});
 
-describe('DELETE /todos/id', () => {
-    it('should delete todos by id, thus 200', (done) => {
+    it('should not find a todo by id when invalid id is passed, 400', (done) => {
         request(app)
-        .delete(`/todos/${todos[0]._id}`)
-        .expect(200)
-         .expect( (res) => {
-             expect(res.body._id).toBe(`${todos[0]._id}`);
-         })
-         .end(done);
-    });
-
-    it('should not delete todos by id as it is not found, 404', (done) => {
-        request(app)
-         .delete('/todos/5c70490fbc357067b2bb25ac')
-         .expect(404)
-         .expect( (res) => {
-             expect(res.text).toBe('no todos found with the specified id');
-         })
-         .end(done);
-    });
-
-    it('should not find a todo by id as it is invalid, 400', (done) => {
-        request(app)
-        .get('/todos/5c70490fbc357067b2bb25acvv')
+        .get('/todos/5c70490fbc357067b2bb25acc')
+        .set('x-auth', users[0].tokens[0].token)
         .expect(400)
         .expect( (res) => {
-            // console.log('response = ', res);
             expect(res.body.Error).toBe('Invalid ID passed');
         })
         .end(done);
@@ -134,6 +115,7 @@ describe('PATCH /todos/id', () => {
     it('should update todo, and completed is set as true', (done) => {
         request(app)
          .patch(`/todos/${todos[0]._id}`)
+         .set('x-auth', users[0].tokens[0].token)
          .send({
              text: 'updated through test suite',
              completed: true
@@ -149,6 +131,7 @@ describe('PATCH /todos/id', () => {
     it('should update todo, and clear compltedAt when completed is set as false', (done) => {
         request(app)
          .patch(`/todos/${todos[0]._id}`)
+         .set('x-auth', users[0].tokens[0].token)
          .send({
             text: 'updated through test suite',
          })
@@ -161,6 +144,68 @@ describe('PATCH /todos/id', () => {
          .end(done);
     });
 
+    it('should not update todo when trying to update by other user, 404', (done) => {
+        request(app)
+         .patch(`/todos/${todos[0]._id}`)
+         .set('x-auth', users[1].tokens[0].token)
+         .send({
+             text: 'updated through test suite',
+             completed: true
+         })
+         .expect(404)
+         .expect( (res) => {
+            expect(res.body).toEqual({});
+         })
+         .end(done);
+    });
+
+});
+
+describe('DELETE /todos/id', () => {
+    it('should delete todos by id, thus 200', (done) => {
+        request(app)
+        .delete(`/todos/${todos[0]._id}`)
+        .set('x-auth', users[0].tokens[0].token)
+        .expect(200)
+        .expect( (res) => {
+            expect(res.body._id).toBe(`${todos[0]._id}`);
+        })
+        .end( (err, result) => {
+            if(err) return done(err);
+        
+            Todo.findById(todos[0]._id).then( (todo) => {
+                expect(todo).toNotExist; 
+                done();
+            }).catch( (e) => done(e) );
+        });
+    });
+
+    it('should not delete todos by id as it is not found, 404', (done) => {
+        request(app)
+         .delete(`/todos/${todos[1]._id}`)
+         .set('x-auth', users[0].tokens[0].token)
+         .expect(404)
+         .end( (err, result) => {
+            if(err) return done(err);
+        
+            Todo.findById(todos[1]._id).then( (todo) => {
+                expect(todo).toExist; 
+                done();
+            }).catch( (e) => done(e) );
+        });
+    });
+
+    it('should not find a todo by id as it is invalid, 400', (done) => {
+        request(app)
+        .get('/todos/5c70490fbc357067b2bb25acvv')
+        .set('x-auth', users[0].tokens[0].token)
+        .expect(400)
+        .expect( (res) => {
+            // console.log('response = ', res);
+            expect(res.body.Error).toBe('Invalid ID passed');
+        })
+        .end(done);
+    });
 });
 
 describe('POST /users', () => {

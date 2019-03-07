@@ -14,158 +14,148 @@ const app = express();
 const port = process.env.PORT;
 app.use(bodyParser.json());
 
-app.post('/todos', authenticate, (req, res) => {
+app.post('/todos', authenticate, async (req, res) => {
     
-    let newTodo = new Todo({
-        text: req.body.text,
-        completed: req.body.completed,
-        completedAt: req.body.completed ? new Date().toString() : "0",
-        _creator: req.user._id
-    });
-    
-    newTodo.save().then( (doc)=>{
+    try {
+        const newTodo = new Todo({
+            text: req.body.text,
+            completed: req.body.completed,
+            completedAt: req.body.completed ? new Date().toString() : "0",
+            _creator: req.user._id
+        });
+        const doc = await newTodo.save();
         res.send(doc);
-    }, (e)=>{
+    } catch (error) {
         let errorString = '';
         errorString += 'unable to save the data into todos collection \n';
         errorString += 'note down the following error \n';
-        res.status(400).send(`${errorString} \n ${e}`);
-        // res.status(400).send(errorString + e);
-        // res.status(400).send(e);
-    });
-
-});
-
-app.get('/todos', authenticate, (req, res) => {
-
-    Todo.find({_creator: req.user._id}).then( (todos) => {
-        res.send(todos);
-        // res.send({
-        //     todos,
-        //     statusCode: 200
-        // });
-    }, (err) => {
-        res.status(400).send('unable to fetch the todos collection');
-    });
-
-});
-
-app.get('/todos/:id', authenticate, (req, res) => {
-    
-    let todoId = req.params.id;
-    
-    if(!ObjectID.isValid(todoId)){
-        return res.status(400).send({Error: 'Invalid ID passed'});
+        res.status(400).send(`${errorString} \n ${error}`);
     }
 
-    Todo.findOne({
-        _id: todoId,
-        _creator: req.user._id
-    }).then( (todos) => {
+});
+
+app.get('/todos', authenticate, async (req, res) => {
+
+    try {
+        const todos = await Todo.find({_creator: req.user._id});    
+        res.send(todos);
+    } catch (error) {
+        res.status(400).send('unable to fetch the todos collection');
+    }
+
+});
+
+app.get('/todos/:id', authenticate, async (req, res) => {
+
+    try {
+        const todoId = req.params.id;
+    
+        if(!ObjectID.isValid(todoId)){
+            return res.status(400).send({Error: 'Invalid ID passed'});
+        }
+        const todos = await Todo.findOne({
+            _id: todoId,
+            _creator: req.user._id
+        });
         if(!todos) return res.status(404).send('no todos found with the specified id');
         return res.send(todos);
-    }, (e) => {
-        return res.status(400).send(`Error:- ${e.message}`);
-    });
+    } catch (error) {
+        return res.status(400).send(`Error:- ${error.message}`);    
+    }
 
 });
 
-app.patch('/todos/:id', authenticate, (req,res) => {
+app.patch('/todos/:id', authenticate, async (req,res) => {
     
-    let todoId = req.params.id;
-    let body = _.pick(req.body, ['text', 'completed']);
-    
-    if(!ObjectID.isValid(todoId)){
-        return res.status(400).send({Error: 'Invalid ID passed'});
-    }
+    try {
+        let todoId = req.params.id;
+        let body = _.pick(req.body, ['text', 'completed']);
+        
+        if(!ObjectID.isValid(todoId)){
+            return res.status(400).send({Error: 'Invalid ID passed'});
+        }
 
-    if(_.isBoolean(body.completed)  && body.completed  ){
-        body.completedAt = new Date().toString();
-    }else{
-        body.completedAt = "0";
-        body.completed = false;
-    }
+        if(_.isBoolean(body.completed)  && body.completed  ){
+            body.completedAt = new Date().toString();
+        }else{
+            body.completedAt = "0";
+            body.completed = false;
+        }
 
-    Todo.findOneAndUpdate({
-        _id: todoId,
-        _creator: req.user._id
-    }, {
-        text: body.text,
-        completed: body.completed,
-        completedAt: body.completedAt
-    }, {
-        new: true
-    }).then( (oldDoc) => {
+        const oldDoc = await Todo.findOneAndUpdate({
+            _id: todoId,
+            _creator: req.user._id
+        }, {
+            text: body.text,
+            completed: body.completed,
+            completedAt: body.completedAt
+        }, {
+            new: true
+        });
+
         if(!oldDoc){
             res.status(404).send('no document found with the specified id');
             return;
         }
         res.send(oldDoc);
-    }).catch( (e) => {
-        res.status(400).send(e);
-    });
 
-});
-
-app.delete('/todos/:id', authenticate, (req,res) => {
-    
-    let todoId = req.params.id;
-    
-    if(!ObjectID.isValid(todoId)){
-        return res.status(400).send({Error: 'Invalid ID passed'});
+    } catch (error) {
+        res.status(400).send(error);
     }
 
-    Todo.findOneAndDelete({
-        _id: todoId,
-        _creator: req.user._id
-    }).then( (todo) => {
+});
+
+app.delete('/todos/:id', authenticate, async (req,res) => {
+    
+    try {
+        const todoId = req.params.id;
+        if(!ObjectID.isValid(todoId)){
+            return res.status(400).send({Error: 'Invalid ID passed'});
+        }
+        const todo = await Todo.findOneAndDelete({
+            _id: todoId,
+            _creator: req.user._id
+        });
         if(!todo) return res.status(404).send('no todos found with the specified id');
         return res.send(todo);
-    }, (e) => {
+    } catch (e) {
         return res.status(400).send(`Error:- ${e.message}`);
-    });
+    }
 
 });
 
-app.post('/users', (req,res) => {
+app.post('/users', async (req,res) => {
     
-    let body = _.pick(req.body, ['email','password']);
+    try {
+        let body = _.pick(req.body, ['email','password']);            
+        let newUser = new User(body);
 
-    //first type
-    // let newUser = new User({
-    //     email: body.email,
-    //     password: body.password
-    // });
+        // call genarateAuthToken() - responsible for creating user specific auth token, saving and returning to the user
 
-    //second type
-    let newUser = new User(body);
-
-    // call genarateAuthToken() - responsible for creating user specific auth token, saving and returning to the user
-
-    newUser.save().then( () => {
-        // res.send(user.email);
-        return newUser.generateAuthToken();
-    }).then( (token) => {
+        await newUser.save();
+        const token = await newUser.generateAuthToken();
         res.header('x-auth',token).send(newUser);
-    }).catch( (e) => {
+
+    } catch (e) {
         let errorString = '';
         errorString += 'unable to save the data into users collection \n';
         errorString += 'note down the following error \n';
         res.status(400).send(`${errorString} \n${e}`);
-    });
+    }
 
 });
 
-app.get('/users' , (req, res) => {
+app.get('/users' , async (req, res) => {
 
-    User.find().then( (users) => {
+    try {
+        const users = await User.find();    
         if(!users) {
             return res.send('no documents found from users collection');
         }
         return res.send(users);
-    }).catch( (e) => {
+    } catch (error) {
         return res.status(400).send('unable to fetch the users collection')
-    });
+    }
 
 });
 
@@ -173,9 +163,7 @@ app.get('/users/me', authenticate, (req,res) => {
     res.send(req.user);
 });
 
-app.get('/users/login', (req,res) => {
-    
-    const body = _.pick(req.body, ['email','password']);
+app.post('/users/login', async (req,res) => {
     
     /* first way
     User.findOne({
@@ -196,23 +184,28 @@ app.get('/users/login', (req,res) => {
         res.status(400).send(e);
     });
     */        
-        
+   
     // second way
-    User.findByCredentials(body.email, body.password).then( (result)=> {
-        return result.generateAuthToken().then( (token) => {
-            res.header('x-auth',token).send(result);
-        });
-    }).catch( (e) => {
-        res.status(400).send(e);
-    });
+    try {
+        const body = _.pick(req.body, ['email','password']);
+        const user = await User.findByCredentials(body.email, body.password);
+        const token = await user.generateAuthToken();
+        res.header('x-auth',token).send(user);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+
 });
 
-app.delete('/users/me/logout', authenticate, (req, res) => {
-    req.user.removeToken(req.token).then( () => {
-        res.send('token removed successfully');
-    }).catch( (e) => {
-        res.status(400).send(e);
-    });
+app.delete('/users/me/logout', authenticate, async (req, res) => {
+    
+    try {
+        await req.user.removeToken(req.token);
+        res.send('token removed successfully');    
+    } catch (error) {
+        res.status(400).send(error);
+    }
+
 });
 
 app.listen(port, () => {

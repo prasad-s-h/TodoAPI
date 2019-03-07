@@ -292,10 +292,10 @@ describe('GET /users/me', () => {
     });
 });
 
-describe('GET /users/login', () => {
+describe('POST /users/login', () => {
     it('on valid login, should set x-auth token in header', (done) => {
         request(app)
-         .get('/users/login')
+         .post('/users/login')
          .send({
              email: users[0].email,
              password: users[0].password
@@ -321,7 +321,7 @@ describe('GET /users/login', () => {
     });
     it('on invalid credentials, should not set x-auth token in header', (done) => {
         request(app)
-         .get('/users/login')
+         .post('/users/login')
          .send({
              email: users[0].email,
              password: '123456789'

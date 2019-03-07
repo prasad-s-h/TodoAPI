@@ -22,6 +22,3 @@ User can get the details of his/her information by setting the x-auth header wit
 User can login by providing the email and password, going to endpoint [POST /users/login]
 User can logout by going to endpoint [DELETE /users/me/logout]
 User can also view the list of the users present in the application, endppoint being [GET /users].
-
-Please follow the link to the application that is hosted in heroku: https://pacific-harbor-75000.herokuapp.com/
-endpoint example: https://pacific-harbor-75000.herokuapp.com/users
